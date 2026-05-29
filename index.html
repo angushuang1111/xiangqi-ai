@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xiangqi App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-locked">
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <p class="eyebrow">Chinese Chess / 象棋</p>
+      <h1>Welcome to Xiangqi Battle</h1>
+      <p class="subtitle">Login with Supabase to save match history and replays to the cloud, or continue as visitor for local-only play.</p>
+      <div class="auth-grid">
+        <div class="auth-box">
+          <h3>Real Email Login / Sign up</h3>
+          <input id="authEmailInput" type="email" maxlength="80" placeholder="Email address" autocomplete="email" />
+          <input id="authNameInput" type="text" maxlength="24" placeholder="Display name (for sign up / visitor)" autocomplete="name" />
+          <input id="authPasswordInput" type="password" maxlength="64" placeholder="Password" autocomplete="current-password" />
+          <div class="auth-actions">
+            <button id="loginBtn">Login</button>
+            <button id="signupBtn">Sign up</button>
+          </div>
+          <div class="auth-actions secondary-auth-actions">
+            <button id="forgotPasswordBtn" class="utility-btn" type="button">Forgot password?</button>
+            <button id="cancelAuthBtn" class="utility-btn hidden" type="button">Back to game</button>
+          </div>
+          <div id="resetPasswordPanel" class="reset-password-panel hidden">
+            <h3>Reset password</h3>
+            <p class="small-note">After opening the reset email link, enter a new password here.</p>
+            <input id="newPasswordInput" type="password" maxlength="64" placeholder="New password" autocomplete="new-password" />
+            <input id="confirmPasswordInput" type="password" maxlength="64" placeholder="Confirm new password" autocomplete="new-password" />
+            <button id="updatePasswordBtn" class="utility-btn" type="button">Update password</button>
+          </div>
+          <p class="small-note">Real authentication is powered by Supabase Email Auth. Email reset needs your Supabase Site URL to point to your Netlify site.</p>
+        </div>
+        <div class="auth-box visitor-box">
+          <h3>Visitor Mode</h3>
+          <p>Play immediately. Replays and settings are saved only on this device.</p>
+          <button id="visitorBtn" class="utility-btn">Continue as Visitor</button>
+        </div>
+      </div>
+      <div id="authMessage" class="auth-message"></div>
+    </div>
+  </section>
+
+  <main class="app">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Chinese Chess / 象棋</p>
+        <h1>Xiangqi Battle</h1>
+        <p class="subtitle">Login or enter visitor mode, then choose Local, AI, Live Battle, or Replay.</p>
+      </div>
+      <div class="top-actions">
+        <button id="undoBtn" class="utility-btn">悔棋 Undo</button>
+        <button id="hintBtn" class="utility-btn">Hint</button>
+        <button id="resetBtn" class="utility-btn">New Game</button>
+        <button id="surrenderBtn" class="danger-btn">Surrender 投降</button>
+      </div>
+    </section>
+
+    <section class="user-strip">
+      <div id="userBadge">Not logged in</div>
+      <div class="user-actions">
+        <button id="ingameLoginBtn" class="utility-btn hidden">Login / Cloud Save</button>
+        <button id="historyBtn" class="utility-btn">Match History / Replay</button>
+        <button id="switchAccountBtn" class="utility-btn">Switch Account</button>
+        <button id="logoutBtn" class="utility-btn">Logout</button>
+      </div>
+    </section>
+
+    <section class="mode-menu" aria-label="Game mode menu">
+      <button id="twoPlayerBtn" class="mode-card active">
+        <span class="mode-icon">👥</span>
+        <span class="mode-title">Local 2 Player</span>
+        <span class="mode-desc">Two people share one device.</span>
+      </button>
+      <button id="aiBtn" class="mode-card">
+        <span class="mode-icon">🤖</span>
+        <span class="mode-title">Play vs AI</span>
+        <span class="mode-desc">Default: Master / Pikafish cloud AI.</span>
+      </button>
+      <button id="onlineBtn" class="mode-card">
+        <span class="mode-icon">🌐</span>
+        <span class="mode-title">Live Battle</span>
+        <span class="mode-desc">Create room, quick match, or join with chat.</span>
+      </button>
+      <button id="replayModeBtn" class="mode-card">
+        <span class="mode-icon">🎬</span>
+        <span class="mode-title">Replay Center</span>
+        <span class="mode-desc">Open saved match history, then choose a replay to review.</span>
+      </button>
+    </section>
+
+    <section class="replay-page" id="replayPage" aria-label="Replay Center">
+      <div class="replay-hero-card">
+        <div>
+          <p class="eyebrow">Replay Center / 復盤中心</p>
+          <h2>Choose a saved match</h2>
+          <p class="subtitle">Pick one replay first. The board and replay controls will appear after you load a match.</p>
+        </div>
+        <button id="exitReplayTopBtn" class="utility-btn" type="button">Back to Menu / New Game</button>
+      </div>
+
+      <div class="info-card history-card" id="historyPanel">
+        <h3>Saved Matches</h3>
+        <div id="replayIntro" class="replay-intro">
+          <strong>Replay mode is active.</strong> Select a saved game, then press <b>Load Replay</b>.
+          Surrendered games are recorded as finished matches.
+        </div>
+        <div class="settings-row">
+          <label for="historySelect">Saved games</label>
+          <select id="historySelect"></select>
+        </div>
+        <div class="live-actions replay-actions">
+          <button id="loadReplayBtn">Load Replay</button>
+          <button id="deleteReplayBtn">Delete</button>
+          <button id="exportReplayBtn">Export JSON</button>
+        </div>
+        <div id="replayStatus" class="live-status">Select a saved game to begin replay.</div>
+        <div id="replayControls" class="replay-controls hidden">
+          <div class="live-actions replay-actions">
+            <button id="replayFirstBtn">⏮ First</button>
+            <button id="replayPrevBtn">◀ Prev</button>
+            <button id="replayPlayBtn">▶ Play</button>
+            <button id="replayNextBtn">Next ▶</button>
+            <button id="replayLastBtn">Last ⏭</button>
+          </div>
+          <div class="live-actions replay-actions">
+            <button id="analyzeReplayBtn">Analyze position with AI</button>
+            <button id="exitReplayBtn">New Game / Exit Replay</button>
+          </div>
+        </div>
+        <p class="small-note">Logged-in users load cloud replay history from Supabase. Visitors save replay history only in this browser.</p>
+      </div>
+    </section>
+
+    <section class="game-layout">
+      <div class="board-wrap">
+        <div id="board" class="board" aria-label="Xiangqi board"></div>
+      </div>
+
+      <aside class="panel">
+        <h2>Game Status</h2>
+        <div id="status" class="status">Red to move</div>
+
+        <div class="settings-row">
+          <label for="sideSelect">Choose side / POV</label>
+          <select id="sideSelect">
+            <option value="red" selected>Red / 紅方</option>
+            <option value="black">Black / 黑方</option>
+          </select>
+        </div>
+
+        <div class="settings-row">
+          <label for="difficultySelect">AI difficulty</label>
+          <select id="difficultySelect">
+            <option value="easy">Easy / random</option>
+            <option value="normal">Normal / capture smart</option>
+            <option value="hard">Hard / Level 2 alpha-beta</option>
+            <option value="expert">Expert / deeper search</option>
+            <option value="master" selected>Master / Pikafish engine</option>
+          </select>
+        </div>
+
+        <label class="toggle-row">
+          <input id="backendToggle" type="checkbox" />
+          Use cloud backend AI
+        </label>
+
+        <div class="settings-row backend-row">
+          <label for="backendUrlInput">Backend AI URL</label>
+          <input id="backendUrlInput" type="url" value="https://xiangqi-ai-backend.onrender.com" placeholder="https://xiangqi-ai-backend.onrender.com" />
+        </div>
+
+        <label class="toggle-row">
+          <input id="soundToggle" type="checkbox" checked />
+          Sound effects：走棋、吃子、將軍、勝利
+        </label>
+
+        <label class="toggle-row">
+          <input id="voiceToggle" type="checkbox" checked />
+          Chinese voice：吃！將軍！
+        </label>
+
+        <label class="toggle-row">
+          <input id="musicToggle" type="checkbox" />
+          Background music：古風循環，可隨時靜音
+        </label>
+
+        <div class="settings-row compact-row">
+          <label for="musicVolume">Music volume</label>
+          <input id="musicVolume" type="range" min="0" max="100" value="28" />
+        </div>
+
+        <div id="hintBox" class="hint-box">Hint will appear here.</div>
+
+        <div class="info-card captured-card">
+          <h3>Captured Pieces</h3>
+          <div class="captured-row"><strong>Red captured:</strong> <span id="redCaptured">None</span></div>
+          <div class="captured-row"><strong>Black captured:</strong> <span id="blackCaptured">None</span></div>
+        </div>
+
+
+
+        <div class="info-card live-card">
+          <h3>Live Battle + Chat</h3>
+          <div class="settings-row">
+            <label for="playerNameInput">Your name</label>
+            <input id="playerNameInput" type="text" maxlength="24" placeholder="Player name" />
+          </div>
+          <div class="settings-row">
+            <label for="roomCodeInput">Room code</label>
+            <input id="roomCodeInput" type="text" maxlength="8" placeholder="XQ1234" />
+          </div>
+          <div class="live-actions">
+            <button id="createRoomBtn">Create Room</button>
+            <button id="joinRoomBtn">Join Room</button>
+            <button id="quickMatchBtn">Quick Match</button>
+            <button id="leaveRoomBtn">Leave</button>
+            <button id="resetRoomBtn">Reset Room</button>
+          </div>
+          <div id="liveStatus" class="live-status">Offline. Use your Render backend URL, then create or join a room.</div>
+          <div class="chat-box" id="chatBox"></div>
+          <div class="chat-input-row">
+            <input id="chatInput" type="text" maxlength="300" placeholder="Type chat message..." />
+            <button id="sendChatBtn">Send</button>
+          </div>
+        </div>
+
+
+        <div class="info-card moves-card">
+          <h3>Move History</h3>
+          <ol id="moveList"></ol>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
